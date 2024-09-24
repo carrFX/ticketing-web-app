@@ -10,12 +10,89 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Sample {
-  id        Int      @id @default(autoincrement())
-  name      String
-  code      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum Role {
+  seller
+  buyer
+}
 
-  @@map("samples") // if you want to use snake_case format
+model Users {
+  id            Int           @id @default(autoincrement())
+  refresh_token String?       @db.VarChar(255)
+  username      String
+  email         String        @unique
+  password      String
+  role          Role
+  avatar        String        @default("https://cdn.pixabay.com/photo/2018/11/13/21/43/avatar-3814049_1280.png")
+  referralTo    String?       @unique @default(nanoid(8))
+  referralBy    String?
+  saldo         Int           @default(100000)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  points        Point[]       @relation("UserPoints")
+  coupons       Coupon[]      @relation("UserCoupons")
+  event         Event[]
+  ticketOrder   TicketOrder[]
+}
+
+model Point {
+  user      Users    @relation("UserPoints", fields: [userId], references: [id], onDelete: Cascade)
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  points    Int      @default(0)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+model Coupon {
+  user      Users    @relation("UserCoupons", fields: [userId], references: [id], onDelete: Cascade)
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  discount  Int      @default(0)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+model Event {
+  id            String        @id @unique @default(nanoid(5))
+  title         String
+  event_pic     String?
+  description   String        @db.VarChar(300)
+  start_date    DateTime      @default(now())
+  end_date      DateTime      @default(now())
+  organizer     Users         @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  organizerId   Int
+  location      String
+  category      String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  expiresAt     DateTime      @default(now())
+  tickets       Tickets[]
+  ticketOnUsers TicketOrder[]
+}
+
+model Tickets {
+  id          Int      @id @default(autoincrement())
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId     String
+  ticket_pict String?
+  roleTicket  String
+  discount    Boolean  @default(false)
+  price       Int
+  quantity    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model TicketOrder {
+  id          Int      @id @default(autoincrement())
+  user        Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  username    String?
+  roleTicket  String?
+  ticket_pict String?
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId     String
+  codeTicket  String   @unique @default(nanoid(7))
+  quantity    Int
+  createdAt   DateTime @default(now())
 }

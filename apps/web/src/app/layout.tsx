@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { Header } from '@/components/Header';
+import { ToastContainer } from 'react-toastify';
 import { Footer } from '@/components/Footer';
+import "react-toastify/dist/ReactToastify.css";
+import { SidebarComp } from '@/components/SidebarComp';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -18,10 +20,19 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <Header />
-        {children}
-        <Footer />
+      <body className={`${inter.className} dark text-neutral-200`}>
+        <SidebarComp>
+          <div className='p-5'>
+          {children}
+          </div>
+          <Footer/>
+        </SidebarComp>
+        <ToastContainer
+          position="bottom-right"
+          autoClose={3000}
+          closeOnClick
+          draggable
+        />
       </body>
     </html>
   );
